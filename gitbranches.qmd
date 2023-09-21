@@ -12,4 +12,6 @@ Dette er introduksjonen.
 
 ## Analyse
 
+## Resultater
+
 ## Konklusjon
