@@ -1,0 +1,136 @@
+---
+title: "transforming_data"
+format: html
+editor: visual
+---
+
+## Transforming data
+
+```{r}
+#| label: setup
+library(tidyverse)
+```
+
+```{r}
+set.seed(1234)
+res_mean_rnorm_3dig_string <- 
+  rnorm(n = 10, mean = 0, sd = 1) %>%
+  mean() %>%
+  round(digits = 3) %>% 
+  # The dot '.' is to show where the content of the pipe should be put
+  paste("Result:", .)
+res_mean_rnorm_3dig_string
+```
+
+Ved bruk av "." må %\>% brukes i stedet for ny pipekarakter \|\> :
+
+```{r}
+set.seed(1234)
+res_mean_rnorm_3dig_string <- 
+  rnorm(n = 10, mean = 0, sd = 1) |>
+  mean() |>
+  round(digits = 3) %>% 
+  # The dot '.' is to show where the content of the pipe should be put
+  paste("Result:", .)
+res_mean_rnorm_3dig_string
+```
+
+Bruk av styler:\
+Addins -\> style selcetion\
+Addins -\> style active file (hele dokumentet)
+
+```{r}
+#| paged.print: false
+data.frame(x = rnorm(2000), y = rnorm(2000, 2, 4))
+```
+
+Dataframe:
+
+```{r}
+#| paged.print: false
+mtcars
+```
+
+Tibble:
+
+```{r}
+#| paged.print: false
+mtcars |>
+  as_tibble(rownames = "model") |>
+  arrange(cyl) |>
+  print(n = 32)
+```
+
+```{r}
+#| paged.print: false
+my_mtcars <- mtcars |>
+  as_tibble(rownames = "model") |>
+  select(model:wt) |>
+  select(model, wt, everything()) |>
+  arrange(cyl, desc(model)) |>
+  print(n = 32)
+  
+# select funksjonen velger hvilke variabler vi ønsker å se i tibble.  
+# (model:vs) = ta med fra model til vs.
+
+# arrange-funksjonen
+# desc() endrer rekkefølgen til synkende. Dersom du ikke bruker desc()
+# alfabetisk arrange(cyl, model) eller arrange(cyl, desc(model))
+```
+
+```{r}
+#| paged.print: false
+my_mtcars
+```
+
+#### Subset
+
+```{r}
+my_mtcars |>
+  filter(cyl == 6) |>
+  select(model) |>
+  arrange(model) |>
+  pull()
+
+# pull() lager vektor i stedet for ny tibble med en kolonne.
+```
+
+#### Dele inn i grupper
+
+```{r}
+my_mtcars |>
+  group_by(cyl) |>
+  summarise(max_hp = min(hp))
+
+# kan bruke både min_hp og min(hp) i stedet for max_hp og max(hp) i summarise funksjonen.
+```
+
+```{r}
+my_mtcars |>
+  group_by(cyl) |>
+  summarise(mean_hp = round(mean(hp), digits = 1))
+
+# round: runder opp, digits = antall desimaler
+# kan også finne median, sum osv.
+```
+
+```{r}
+my_mtcars |>
+  group_by(cyl) |>
+  summarise(mean_disp = round(mean(disp), digits = 1))
+```
+
+#### Lage nye variabler
+
+```{r}
+my_mtcars <- my_mtcars |>
+  mutate(
+    hp_vs_disp = hp/disp
+  )
+```
+
+```{r}
+my_mtcars |>
+  group_by(cyl) |>
+  summarise(mean_hp_vs_disp = round(mean(hp_vs_disp), digits = 3))
+```

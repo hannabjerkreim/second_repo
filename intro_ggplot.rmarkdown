@@ -17,7 +17,9 @@ library(readxl)
 library(PxWebApiData)
 ```
 
+
 ## Intro ggplot
+
 
 ```{r}
 ggplot(
@@ -269,7 +271,9 @@ ggplot(
     )
 ```
 
+
 ## Import and export Data
+
 
 ```{r}
 Rog_99_02 <- read_excel("Rog_99_02.xlsx", 
@@ -296,7 +300,9 @@ Rog_99_02_csv <- read_delim(
 View(Rog_99_02_csv)
 ```
 
+
 ## PxWebApiData
+
 
 ```{r}
 metadata_10540_no <- ApiData(
@@ -365,9 +371,12 @@ unemp99to02 <- ApiData12(
 
 ```
 
+
 Hvordan vi vanligvis jobber
+
 
 ```{r}
 #| label: StudyArea
 knr = c()
 ```
+

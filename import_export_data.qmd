@@ -1,0 +1,51 @@
+---
+title: "import_export_data"
+format: html
+editor: visual
+---
+
+## Import and export of data
+
+```{r}
+#| label: setup
+#| message: false
+#| output: false
+library(tidyverse)
+library(ggpubr)
+library(readxl)
+library(PxWebApiData)
+```
+
+```{r}
+Rog_99_02 <- read_excel("Rog_99_02.xlsx", 
+    sheet = "RegHeltLedige", skip = 2)
+```
+
+```{r}
+View(Rog_99_02)
+```
+
+```{r}
+Rog_99_02_csv <- read_delim(
+  file = "Rog_99_02.csv", 
+  delim = ";", 
+  escape_double = FALSE, 
+  locale = locale(
+    date_names = "nb", 
+    encoding = "ISO-8859-1"), 
+  trim_ws = TRUE, 
+  skip = 1,
+  show_col_types = FALSE
+  )
+
+View(Rog_99_02_csv)
+```
+
+### PxWebApiData
+
+```{r}
+metadata_10540_no <- ApiData(
+  "https://data.ssb.no/api/v0/no/table/10540/",
+  returnMetaFrames = TRUE
+  )
+```
