@@ -6,10 +6,10 @@ editor: visual
 
 ## Introduksjon
 
-kinjgnb girem ei eigmeimgiem.
+Dette er introduksjonen.
 
-## Litteraturstudie 
+## Litteraturstudie
 
 ## Analyse
 
-## 
+## Konklusjon
