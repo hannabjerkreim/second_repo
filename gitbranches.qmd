@@ -8,6 +8,14 @@ editor: visual
 
 Dette er introduksjonen.
 
+Hvordan skrive introduksjon til innholdet?
+Det er et veldig viktig spørsmål.
+I introduksjonen blir tross alt leseren enten fanget eller fortapt.
+Det er ikke til å legge under en stol at oppmerksomhetsspennet er veldig lavt hos folk flest.
+
+Hvordan jobber du da med introduksjonene dine for at brukeren skal lese lengst mulig?
+Vi skal i denne artikkelen gå gjennom hvordan du skriver introduksjon for best mulig effekt.
+
 ## Litteraturstudie
 
 ## Analyse
