@@ -1,0 +1,15 @@
+---
+title: "gitbranches"
+format: html
+editor: visual
+---
+
+## Introduksjon
+
+kinjgnb girem ei eigmeimgiem.
+
+## Litteraturstudie 
+
+## Analyse
+
+## 
