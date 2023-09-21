@@ -26,7 +26,6 @@ plot(mtcars$hp, mtcars$mpg)
 
 ```{r}
 plot(cars)
-analyse_vers2
 ```
 
 ## Resultater
