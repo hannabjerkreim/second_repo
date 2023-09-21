@@ -12,6 +12,10 @@ Dette er litteraturstudien.
 
 ## Analyse
 
+En analyse er en nøyaktig undersøkelse av noe som er sammensatt av flere bestanddeler for å forklare et gitt problem, en gitt utviklinger en systematisk undersøkelse.
+Den enkelte bestanddel kan bli subjekt/objekt i en ny analyse osv.
+til ønsket nøyaktighet i betraktningen er nådd.
+
 ## Resultater
 
 ## Konklusjon
