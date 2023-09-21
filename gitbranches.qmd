@@ -16,6 +16,12 @@ En analyse er en nøyaktig undersøkelse av noe som er sammensatt av flere besta
 Den enkelte bestanddel kan bli subjekt/objekt i en ny analyse osv.
 til ønsket nøyaktighet i betraktningen er nådd.
 
+### Versjon 2
+
+```{r}
+plot(cars)
+```
+
 ## Resultater
 
 ## Konklusjon
