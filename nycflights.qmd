@@ -1,0 +1,269 @@
+---
+title: "nycflights"
+format: html
+editor: visual
+---
+
+# Nycflights13
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(nycflights13)
+```
+
+```{r}
+flights <- flights
+# få datasettet flights inn i environment. Bruker samme navn.
+```
+
+```{r}
+dim(flights)
+# dim gir hvor mange rekker og kolonner i datasettet.
+dim(flights)[1]
+dim(flights)[2]
+```
+
+```{r}
+class(flights)
+# class brukes for å spørre hva noe er. Her dataframe med utvidet funksjonalitet tibble.
+class(dim(flights))
+# Her vektor med heltall.
+```
+
+```{r}
+#| paged.print: false
+flights |>
+  head(n = 10)
+```
+
+```{r}
+#| paged.print: false
+flights |>
+  arrange(desc(month), desc(day))
+```
+
+```{r}
+flights <- flights |>
+  arrange(month, day, desc(dep_time))
+# endret rekkefølgen på rekkene
+```
+
+```{r}
+#| paged.print: false
+flights |>
+  tail()
+```
+
+```{r}
+#| paged.print: false
+flights |>
+  filter(month == 1, day == 1) |>
+  print(
+    n = 5, 
+    width = 80
+    )
+
+# print kommando med width bestemmer hvor mange tegn i bredden.
+```
+
+```{r}
+summary(flights)
+```
+
+```{r}
+  flights %>% 
+  filter(month == 1, !(day %in% c(1, 15, 30))) %>% 
+  print(width = 70)
+  # ! gjør at en ikke tar med 1, 15, 30 januar. 
+  # dersom en tar bort !, inkluderes bare 1, 15 og 30 januar.
+```
+
+## Operators
+
+```{r}
+# or er |
+FALSE | TRUE
+FALSE | FALSE
+```
+
+```{r}
+# and er &
+FALSE & TRUE
+TRUE & FALSE
+TRUE & TRUE
+```
+
+```{r}
+(TRUE & FALSE) | TRUE
+TRUE & (FALSE | TRUE)
+```
+
+## Small exercises
+
+**1**) **How many flights were there in April and September (total)?** 55 904
+
+```{r}
+flights |>
+  filter(month %in% c(4,9)) |>
+  nrow()
+```
+
+Antall flyvninger per måned:
+
+```{r}
+#| paged.printed: false
+flights |> 
+  group_by(month) |>
+  summarise(antall_flyvninger = n())
+```
+
+**2) How many flights were there in total the first two days of a month?** 1785
+
+```{r}
+#| paged.print: false
+flights |> 
+  filter(month == 1) |>
+  group_by(day) |>
+  count() |>
+  print(n = 2)
+```
+
+Dagen med flest flyvninger i januar er dag 2:
+
+```{r}
+#| paged.print: false
+flights |> 
+  filter(month == 1) |>
+  group_by(day) |>
+  count() |>
+  arrange(desc(n)) |>
+  print(n =1)
+```
+
+```{r}
+flights |>
+  filter(day %in% c(1,2)) |>
+  nrow()
+```
+
+**3) How many flights were there during 2013 that had an arrival delay greater than or equal to 15 min., but less than 30 min.?** 22 798
+
+```{r}
+flights |>
+  filter(arr_delay >= 15 & arr_delay < 30) |>
+  select(arr_delay) |>
+  nrow()
+```
+
+## Missing values NA
+
+```{r}
+# is.na() sjekker for NA verdier.
+sum(is.na(flights$arr_delay))
+# bruker $ for å plukke ut variabler fra datasettet.
+```
+
+## Select-funksjonen
+
+```{r}
+# minus forann, dropper variabelen.
+# overskrider med ny versjon av flights som ikke inneholder "year". 
+flights <- flights |>
+  select(-year)
+```
+
+```{r}
+# endre rekkefølgen på variablene
+# everything() tar med alle variabler som ikke allerede er nevt.
+flights <- flights |>
+  select(month:day, carrier, tailnum, everything())
+```
+
+```{r}
+# henter inn flights på ny, resetter datasettet uten endringene vi har gjort. 
+flights <- nycflights13::flights
+```
+
+```{r}
+# endre navn ved hjelp av select kommandoen. 
+flights <- flights |>
+  select(-year) |>
+  select(
+    month:day,
+    flyselskap = carrier, 
+    halenummer = tailnum,
+    everything()
+    ) |>
+  # setter tilbake til engelsk variabel navn ved hjelp av rename()
+  rename(
+    carrier = flyselskap,
+    tailnum = halenummer
+  )
+```
+
+```{r}
+arr_delay_May <- flights |>
+    select(day, month, arr_delay) |>
+    filter(month == 5) |>
+    select(-month)
+  
+```
+
+```{r}
+#| paged.print: false
+# gjennomsnittlig ankomstforsinkelse for dagene i Mai 2013
+arr_delay_May |>
+  group_by(day) |>
+  summarise(gjensnitt_f = round(
+    mean(
+    arr_delay, 
+    na.rm = TRUE
+    ),
+    digits = 2
+  ),
+  median_f = median(arr_delay, na.rm = TRUE),
+  min_f = min(arr_delay, na.rm = TRUE),
+  maks_f = max(arr_delay, na.rm = TRUE),
+  total_f = sum(arr_delay, na.rm = TRUE)
+  ) |>
+  print(n = 31)
+```
+
+## Mutate
+
+```{r}
+# new variables with mutate: "gain" and "speed"
+flights <- flights %>%
+  select(month:day, ends_with("delay"), distance, air_time) %>%
+  mutate(
+    gain = dep_delay - arr_delay,
+    speed = (distance/air_time) * 60
+    ) %>%
+  select(month:day, gain, everything()) %>%
+  arrange(gain)
+head(flights, n = 5) 
+```
+
+## Transmute
+
+```{r}
+my_data <- flights %>%
+    transmute(
+    gain = dep_delay - arr_delay,
+    speed = (distance/air_time) * 60
+    ) %>%
+  arrange(gain)
+head(my_data, n = 3)
+```
+
+```{r}
+alt_my_data <- flights %>%
+    mutate(
+    gain = dep_delay - arr_delay,
+    speed = (distance/air_time) * 60
+    ) %>%
+  select(gain, speed) %>%
+  arrange(gain)
+head(alt_my_data, n = 3)
+```

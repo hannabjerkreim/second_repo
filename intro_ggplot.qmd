@@ -1,0 +1,373 @@
+---
+title: "ggplot"
+format: html
+editor: visual
+echo: false
+output: false
+message: false
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| output: false
+library(tidyverse)
+library(ggpubr)
+library(readxl)
+library(PxWebApiData)
+```
+
+## Intro ggplot
+
+```{r}
+ggplot(
+  data = mtcars, 
+  mapping = aes(x = disp, y = mpg)
+  ) + 
+  geom_point() +
+  geom_smooth(level = 0.99) + 
+  geom_smooth(method = "lm", 
+              colour = "red", 
+              se = FALSE)
+```
+
+```{r}
+gg1 <-   ggplot(data = mtcars, mapping = aes(x = disp, y = mpg)) +
+  geom_point()
+```
+
+```{r}
+gg2 <-   ggplot(data = mtcars) +
+  geom_point(mapping = aes(x = disp, y = mpg))
+```
+
+```{r}
+ggarrange(gg1, gg2, labels = c("mapping = aes in ggplot", "mapping = aes in geom_*"),
+          nrow = 1)
+```
+
+```{r}
+ggplot() + 
+  geom_point(
+    mapping = aes(x = disp, y = mpg,
+                  colour = factor(am),
+                  size = qsec,
+                  alpha = wt,
+                  shape = factor(cyl),
+                  ),
+    data = mtcars
+    )
+```
+
+```{r}
+ggplot() +
+  geom_point(
+    data = mtcars,
+    mapping = aes(
+      x = disp, 
+      y = mpg, 
+      colour = factor(cyl), 
+      alpha = 3.6*(0.25*1609.347)/qsec, 
+      shape = factor(ifelse(am, "Man", "Aut"))
+      ), 
+    size = 4
+    ) + 
+  labs(
+    colour = "cyl", 
+    alpha = "speed\n(km/h)", 
+    shape = "trans-\nmission"
+    )
+```
+
+```{r}
+ggplot() +
+  geom_point(
+    data = mtcars,
+    mapping = aes(
+      x = disp,
+      y = mpg, 
+      colour = factor(cyl), 
+      size = 3.6*(0.25*1609.347)/qsec, 
+      shape = factor(
+        # Note codeing am
+        # 0 automatic, 1 manual
+        ifelse(
+          am, 
+          "Aut", 
+          "Man"
+          )
+        )
+      )
+    ) +
+  labs(
+    colour = "cyl", 
+    size = "speed\n(km/h)", 
+    shape = "trans-\nmission"
+    ) +
+  geom_smooth(
+    data = mtcars, 
+    mapping = aes(x = disp, y = mpg),
+    span = 0.5,
+    level = 0.99
+    ) +
+   geom_smooth(
+    data = mtcars, 
+    mapping = aes(x = disp, y = mpg),
+    span = 0.5,
+    level = 0.95
+    ) +
+  geom_smooth(
+    data = mtcars, 
+    mapping = aes(x = disp, y = mpg),
+    method = lm,
+    se = FALSE,
+    colour = "green"
+  )
+```
+
+```{r}
+ggplot() +
+  geom_point(
+    data = mtcars,
+    mapping = aes(
+      x = disp,
+      y = mpg, 
+      colour = factor(cyl), 
+      size = 3.6*(0.25*1609.347)/qsec, 
+      shape = factor(
+        # Note codeing am
+        # 0 automatic, 1 manual
+        ifelse(
+          am, 
+          "Aut", 
+          "Man"
+          )
+        )
+      )
+    ) +
+  labs(
+    colour = "cyl", 
+    size = "speed\n(km/h)", 
+    shape = "trans-\nmission"
+    ) +
+    geom_smooth(
+    data = mtcars, 
+    mapping = aes(x = disp, y = mpg),
+    method = lm,
+    colour = "blue",
+    se = FALSE,
+    ) +
+  #robust rlm
+   geom_smooth(
+    data = mtcars, 
+    mapping = aes(x = disp, y = mpg),
+    method = MASS::rlm,
+    colour = "red",
+    se = FALSE,
+    )
+```
+
+```{r}
+ggplot(
+  data = mtcars, 
+  mapping = aes(
+    x = hp, 
+    y = 1609.347/(2*qsec^2)
+    )
+  ) +
+  facet_wrap(~cut_number(wt, n =3)) +
+  geom_point(
+    aes(colour = cut_number(
+      wt, 
+      n = 3)
+      )
+    ) +
+  geom_smooth(
+    mapping = aes(colour = cut_number(
+      wt, 
+      n = 3)
+      ),
+    method = "lm", 
+    se = FALSE
+    )
+```
+
+```{r}
+#new dataframe to use for the grey points
+hp_acc <- data.frame(
+  hp = mtcars$hp, 
+  acc = 1609.347/(2*mtcars$qsec^2)
+  )
+
+ggplot(
+  data = mtcars, 
+  mapping = aes(x = hp, y = 1609.347/(2*qsec^2))
+  ) +
+  geom_point(
+    data = hp_acc, 
+    mapping = aes(x = hp, y = acc), colour = "grey80"
+    ) +
+  facet_wrap(
+    ~cut_number(
+      wt, 
+      n =3 , 
+      labels = c("Light", "Medium", "Heavy")
+      )
+    ) +
+  geom_point(
+    mapping = aes(colour = cut_number(
+      wt, 
+      n = 3, 
+      labels = c("Light", "Medium", "Heavy")
+      )
+      ),
+    show.legend = TRUE
+    ) +
+  geom_smooth(
+    method = "lm", 
+    se = FALSE
+    ) +
+  labs(
+    y = "Mean acceleration (m/s^2)", 
+    colour = "Weight"
+    )
+```
+
+```{r}
+ggplot(
+  data = mtcars, 
+  mapping = aes(x = hp, y = 1609.347/(2*qsec^2))
+  ) +
+  geom_point(
+    data = hp_acc, 
+    mapping = aes(x = hp, y = acc), 
+    colour = "grey80"
+    ) +
+  facet_grid(
+    factor(cyl)~cut_number(
+      wt, 
+      n =3 , 
+      labels = c("Light", "Medium", "Heavy"))
+    ) +
+  geom_point(
+    mapping = aes(
+      colour = cut_number(
+        wt, 
+        n = 3, 
+        labels = c("Light", "Medium", "Heavy")
+        )
+      ),
+    show.legend = FALSE
+    ) +
+  geom_smooth(
+    method = "lm", 
+    se = FALSE
+    ) +
+  labs(
+    y = "Mean acceleration", 
+    colour = "Weight"
+    )
+```
+
+## Import and export Data
+
+```{r}
+Rog_99_02 <- read_excel("Rog_99_02.xlsx", 
+    sheet = "RegHeltLedige", skip = 2)
+```
+
+```{r}
+View(Rog_99_02)
+```
+
+```{r}
+Rog_99_02_csv <- read_delim(
+  file = "Rog_99_02.csv", 
+  delim = ";", 
+  escape_double = FALSE, 
+  locale = locale(
+    date_names = "nb", 
+    encoding = "ISO-8859-1"), 
+  trim_ws = TRUE, 
+  skip = 1,
+  show_col_types = FALSE
+  )
+
+View(Rog_99_02_csv)
+```
+
+## PxWebApiData
+
+```{r}
+metadata_10540_no <- ApiData(
+  "https://data.ssb.no/api/v0/no/table/10540/",
+  returnMetaFrames = TRUE
+  )
+```
+
+```{r}
+# metadata_13891_no$ for å se på de ulike variablene
+```
+
+```{r}
+unemp99to02 <- ApiData12(
+  "http://data.ssb.no/api/v0/en/table/10540",
+  Region = list("11*"),
+  Tid = c(paste(
+    rep(1999:2002, each = 12), 
+    "M",
+    sprintf("%02d", 1:12), 
+    sep = "")
+    ),
+  Alder = "15-29"
+    )
+
+# Region: Kommuner i Rogaland begynner med 11
+```
+
+```{r}
+unemp99to02 <- ApiData12(
+  "http://data.ssb.no/api/v0/en/table/10540",
+    Region = c("1101",
+          "1103",
+          "1106",
+          "1108",
+          "1111",
+          "1112",
+          "1114",
+          "1119",
+          "1120",
+          "1121",
+          "1122",
+          "1124",
+          "1127",
+          "1129",
+          "1130",
+          "1133",
+          "1134",
+          "1135",
+          "1141",
+          "1142",
+          "1144",
+          "1145",
+          "1146",
+          "1149",
+          "1151",
+          "1154"),
+    Tid = c(paste(
+      rep(1999:2002, each = 12), 
+      "M",
+      sprintf("%02d", 1:12), 
+      sep = "")
+      ),
+    Alder = "15-29"
+      )
+
+```
+
+Hvordan vi vanligvis jobber
+
+```{r}
+#| label: StudyArea
+knr = c()
+```
