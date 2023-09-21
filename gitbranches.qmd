@@ -8,6 +8,8 @@ editor: visual
 
 ## Litteraturstudie
 
+Dette er litteraturstudien.
+
 ## Analyse
 
 ## Resultater
