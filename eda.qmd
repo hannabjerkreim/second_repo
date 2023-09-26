@@ -1,0 +1,461 @@
+---
+title: "Exploratory_data_analysis"
+format: html
+editor: visual
+---
+
+# Exploratory data analysis (EDA) - r4ds chap. 7
+
+Getting to know your data
+
+-   Variation **in** variables
+-   Variation **between** variables
+
+## **Definitions**
+
+-   **Variable:** Some quality of the underlying phenomeon that one can measure.
+-   **Value:** The recorded number or category resulting from the measurement.
+-   **Observation:** A set of measurements of the underlying phenomenon.
+    -   same time
+    -   same object
+-   **Tabular data:** Listing of variables, observations and values.
+-   **Tidy tabular data:** Tabular data where
+    -   each variable is in a column,
+    -   each variable in a row,
+    -   each cell in the table contains one value.
+
+```{r}
+#| label: setup
+#| ouput: false
+#| message: false
+#| echo: false
+library(tidyverse)
+library(nycflights13)
+library(gridExtra)
+library(modelr)
+library(grid)
+library(ggplotify)
+library(vtable)
+```
+
+## Heights dataset
+
+Load the data:
+
+```{r}
+heights <- modelr::heights
+# :: går inn i pakken modelr og henter datasettet "hights". På denne måten trenger en ikke laste pakken i chuncken ovenfor. 
+```
+
+Summary of the data:
+
+```{r}
+summary(heights)
+```
+
+Sammenheng mellom høyde og inntekt
+
+```{r}
+heights |>
+  select(income, height) |>
+  filter(income < 300000) |>
+  ggplot(mapping = aes(x = height, y = income)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+## NAs in each variable in the dataset
+
+Any NA\`s?
+
+```{r}
+# How many NAs in each variable in "heights"? Alternative 1
+heights %>% 
+  apply(MARGIN = 2, FUN = is.na) %>% 
+  apply(MARGIN = 2, FUN = sum) 
+```
+
+or ...
+
+```{r}
+# How many NAs in each variable in "heights"? Alternative 2
+heights %>% 
+  is.na() %>% 
+  apply(MARGIN = 2, FUN = sum) 
+```
+
+or ... a nicer solution:
+
+```{r}
+# How many NAs in each variable in "heights"? Alternative 3
+heights %>% 
+  is.na() %>% 
+  colSums()
+```
+
+or ... drop values \>0
+
+```{r}
+# How many NAs in each variable in "heights"? Drop values >0.
+heights %>% 
+  is.na() %>% 
+  colSums() %>% 
+  .[. > 0]
+```
+
+## Descriptive statistics
+
+Describe data by tables showing:\
+\
+Different statistics /characteristics) of the data
+
+-   Number of observations
+-   Number of missing values
+-   Minimum value
+-   Maximum value
+-   Mean
+-   Dispersion
+    -   Standard deviation
+    -   Variance
+    -   Percentiles
+
+*vtable package - st() function*
+
+Splits variables into two tables:
+
+```{r}
+heights %>% 
+  # drop marital and sex
+  select(-marital, -sex) %>% 
+  # sumtable, summary statistics
+  vtable::st()
+```
+
+```{r}
+heights %>% 
+  # include only marital and sex
+  select(marital, sex) %>% 
+  # sumtable, summary statistics
+  vtable::st(.)
+```
+
+```{r}
+heights %>% 
+  # drop marital
+  select(-marital) %>% 
+  # group by sex
+  vtable::st(group = 'sex')
+# kan sammenhengen mellom høyde og inntekt skyldes kjønnsforskjeller?
+```
+
+```{r}
+heights %>% 
+  # lager ny variabel med mutate
+  # forenkler variabelen martial, fra fem kategorier til gift/ikke gift: 
+  # married = true, not married = false
+  mutate(
+    married = if_else(
+      marital == 'married', 
+      TRUE, 
+      FALSE
+      )
+    ) %>% 
+  # plukker ut bare "female".
+  filter(sex == 'female') %>% 
+  # dropp variabelene "sex" and "marital"
+  select(-sex, -marital) %>% 
+  # grupper med hensyn på den nye variabelen "married"
+  vtable::st(group = 'married')
+```
+
+```{r}
+# samme som ovenfor, men med "male" i stedet for "female"
+heights %>% 
+  mutate(
+    married = if_else(
+      marital == 'married', 
+      TRUE, 
+      FALSE
+      )
+    ) %>% 
+  filter(sex == 'male') %>% 
+  select(-sex, -marital) %>% 
+  vtable::st(group = 'married')
+```
+
+Single variable grapichal description, bar chart:
+
+```{r}
+ggplot(data = heights) +
+  geom_bar(mapping = aes(x = education), na.rm = TRUE)
+# kan kjøres uten na.rm, får samme resultat, men med en warning.
+```
+
+Reason behind the peak at 12 years?
+
+-   High-school
+
+Reason behind the peak at 14 years?
+
+-   2 year trade school
+
+Reason behind the peak at 16 years?
+
+-   4 year collage
+
+## Histogram
+
+Be aware of outliers.
+Might be difficult to spot in a histogram.
+
+```{r}
+# histogram med klassisk R 
+hist1 <- ggplotify::as.ggplot(~hist(heights$income, breaks = 20))
+# histogram med ggplot
+hist2 <- ggplot(heights, mapping = aes(x = income)) +
+  geom_histogram(bins = 20)
+# få begge hisogrammene på siden av hverandre
+gridExtra::grid.arrange(hist1, hist2, ncol = 2)
+```
+
+```{r}
+# histogram for variablene "income", "height" og "weight"
+hist3 <- ggplot(heights, mapping = aes(x = income)) +
+  geom_histogram(bins = 40, na.rm = TRUE)
+hist4 <- ggplot(heights, mapping = aes(x = height)) +
+  geom_histogram(bins = 40, na.rm = TRUE)
+hist5 <- ggplot(heights, mapping = aes(x = weight)) +
+  geom_histogram(bins = 40, na.rm = TRUE)
+gridExtra::grid.arrange(hist3, hist4, hist5, ncol = 1)
+#"ncol" og "nrow" avgjør om vi får hisogrammene på siden av eller under hverandre. 
+```
+
+```{r}
+# Histogram av variablene "age", "education" and "afqt"
+hist6 <- ggplot(heights, mapping = aes(x = age)) +
+  geom_histogram(bins = 40, na.rm = TRUE)
+hist7 <- ggplot(heights, mapping = aes(x = education)) +
+  geom_histogram(bins = 40, na.rm = TRUE)
+hist8 <- ggplot(heights, mapping = aes(x = afqt)) +
+  geom_histogram(bins = 40, na.rm = TRUE)
+gridExtra::grid.arrange(hist6, hist7, hist8, nrow = 1)
+#"ncol" og "nrow" avgjør om vi får hisogrammene på siden av eller under hverandre. 
+```
+
+## Facets
+
+We can use the facet feature of ggplot.
+
+*geom_desity()*
+
+Three levels of education (\[0-12) "NotHS, \[12-14)"NotTC", \[14-16)"NotC", \[16-21\]"C+")\
+Faceted on the "sex" variable.\
+Use the cut()-function to make the categories.\
+Have to use right = FALSE to get open interval on the right.
+
+```{r}
+# faceted on sex
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(!is.na(edu_fac) & income > 0) %>%
+  ggplot(mapping = aes(x = income, fill = edu_fac, colour = edu_fac)) +
+  geom_density(alpha = 0.2, na.rm = TRUE) + 
+  facet_wrap(~sex)
+```
+
+Facet on education:
+
+```{r}
+# facet on edu_fac
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(!is.na(edu_fac) & income > 0) %>%
+  ggplot(mapping = aes(x = income, fill = sex, colour = sex)) +
+  geom_density(alpha = 0.2, na.rm = TRUE) + 
+  facet_wrap(~edu_fac)
+```
+
+## Income equal to 0?
+
+```{r}
+heights %>% 
+  dim()
+```
+
+```{r}
+heights %>% 
+  filter(income < 1) %>% 
+  dim()
+```
+
+```{r}
+heights %>% 
+  filter(income < 1) %>%
+  select(sex) %>%
+  group_by(sex) %>%
+  table()
+```
+
+```{r}
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(income < 1) %>%
+  select(sex, edu_fac) %>%
+  group_by(sex) %>%
+  table()
+```
+
+## Boxplot
+
+```{r}
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(income > 0) %>% 
+  ggplot(mapping = aes(x = edu_fac, y = income)) +
+  facet_wrap(~sex) + 
+  geom_boxplot()
+```
+
+```{r}
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(income > 0) %>% 
+  ggplot(mapping = aes(x = edu_fac, y = income)) +
+  facet_wrap(~sex) + 
+  geom_boxplot() + 
+  coord_flip()
+```
+
+## How to treat bad data?
+
+**Outliers?**
+
+-   Real outliers or faulty registration?
+
+**What to do?**
+
+-   To just delete the observation is seldom the right solution.
+-   Document what you do!
+-   If you suspect faulty data entry/registration change value to NA.
+-   In some rare cases it might be acceptable to edit the data.
+    -   If you have very few observations.
+    -   Can give a very plausible explanation for the faulty entry. Document very carefully.
+-   Do not use na.rm = TRUE in ggplot before last edit.
+    -   Make sure that you have thoroughly documented the missing values.
+    -   ggplot is nice and warns you about missing values and tells you how many there are.
+
+**With real outliers?**
+
+-   Explanation. Is there a missing variable?
+-   Do the analysis with and without the outliers. If similar results not to much of a problem, if not ...
+
+## Covariation
+
+Use facets as above.
+
+Some cases:
+
+-   Categorical and continuous variable
+-   Two categorical variables
+-   Two continuous variables
+
+### Categorical and continuous variable
+
+*geom_freqpoly()*
+
+-   Lines, category by colour or linetype (BW).
+-   Default gives count, density often better.
+
+```{r}
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(income > 0 & !is.na(weight) & !is.na(afqt) & !is.na(edu_fac)) %>%
+ggplot(mapping = aes(x = income, y = after_stat(density))) +
+  geom_freqpoly(mapping = aes(colour = edu_fac), binwidth = 10000)
+```
+
+### Two categorical variables
+
+```{r}
+heights %>% 
+  mutate(
+    edu_fac = cut(education, 
+                  breaks = c(0, 12, 14, 16, 21), 
+                  labels = c("NotHS", "NotTC", "NotC", "C+"),
+                  right = FALSE) 
+  ) %>% 
+  filter(income > 0 & !is.na(weight) & !is.na(afqt) & !is.na(edu_fac)) %>%
+  ggplot() +
+  geom_count(mapping = aes(x = marital, y = edu_fac))
+```
+
+### One continuous variable, one with many categories
+
+```{r}
+heights %>% 
+  filter(income > 0 & !is.na(weight) & !is.na(afqt) & !is.na(education)) %>%
+  ggplot() +
+  geom_point(mapping = aes(x = education, y = income), alpha = 0.05)
+```
+
+### Two continuous variables
+
+-   Use diamonds dataset (tidyverse)
+-   Smaller point size
+
+```{r}
+dim(diamonds)
+```
+
+```{r}
+diamonds %>% 
+  filter (carat < 2.5) |>
+  ggplot(mapping = aes(x = carat, y = price)) +
+  geom_point(size = 0.1, alpha = 0.05)
+```
+
+```{r}
+# Hvor mange diamanter er 2.5 carat eller større
+diamonds %>% 
+  filter(carat >= 2.5) |>
+  nrow()
+```
+
+### Two continuous variables; make one categorical
+
+```{r}
+diamonds %>% 
+  filter(carat <= 2) %>% 
+  ggplot(mapping = aes(x = carat, y = price)) +
+  geom_boxplot(mapping = aes(group = cut_width(carat, 0.1)))
+```
